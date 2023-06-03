@@ -1,3 +1,6 @@
+from weakref import proxy
+
+
 def hash_file(file_path):
     import hashlib
     with open(file_path, "rb") as f:
@@ -7,13 +10,23 @@ def hash_file(file_path):
         del hashlib
         return hash_object.hexdigest()
 
+def init():
+    download_GFWlist()
+    from adblockparser import AdblockRules
+    with open('./GFW/GFWlist.txt') as f:
+            rules = f.read()
+    global adblock_rules 
+    adblock_rules= AdblockRules(rules)
 
-# def download_GFWlist():
-    import wget
+
+def download_GFWlist():
     import base64
     import os
+    import requests
     url = r'https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt'
-    wget.download(url, './GFW/GFWlist.temp')
+    response = requests.get(url)
+    with open("./GFW/GFWlist.temp", "wb") as f:
+        f.write(response.content)
     new_hash = hash_file('./GFW/GFWlist.temp')
     with open('./GFW/GFWlist.md5') as f:
         old_hash = f.read()
@@ -40,14 +53,14 @@ def hash_file(file_path):
         content = re.sub(r"\n\*\.", "", content)
         content = re.sub(r"[\n]{2,5}", "", content)
         content = re.sub(r"http[s]{0,1}://", "", content)
-        content = re.sub(r"/.*", "", content)
-        content = re.sub(r"\n\.", "\n", content)
         with open('./GFW/GFWlist.txt', 'w') as f:
             f.write(content)
 
 
 def in_GFW(url):  # True or False
     return False
+    is_blocked = adblock_rules.should_block("url")
+    return is_blocked
 
 
 def ping_speed(url):  # 'Direct' or 'Proxy' or 'Blocked'
@@ -59,19 +72,19 @@ def test_robot(url):  # 'Direct' or 'Proxy' or 'Not Found'
         'http': 'http://127.0.0.1:7890',
         'https': 'http://127.0.0.1:7890'
     }
-    url = url+'/robots.txt'
+    url = r'https://'+url+'/robots.txt'
     import requests
     import time
     try:
         start_time = time.time()
-        response = requests.get(url)
+        response = requests.get(url, timeout=3)
         end_time = time.time()
         direct_time = end_time - start_time
     except:
         direct_time=100
     try:
         start_time = time.time()
-        response = requests.post(url, proxies=proxy)
+        response = requests.get(url, proxies=proxy, timeout=3)
         end_time = time.time()
         proxy_time = end_time - start_time
     except:
@@ -88,18 +101,21 @@ def test_robot(url):  # 'Direct' or 'Proxy' or 'Not Found'
 
 def detect(url):
     if in_GFW(url) == True:
-        return 'Proxy'
+        return 'GFW:    Proxy'
 
-    if ping_speed(url) == 'Proxy':
-        return 'Proxy'
-    elif ping_speed(url) == 'Direct':
-        return 'Direct'
+    ping_ans=ping_speed(url)
+    if ping_ans == 'Proxy':
+        return 'Ping:   Proxy'
+    elif ping_ans == 'Direct':
+        return 'Ping:   Direct'
 
-    if test_robot(url) == 'Proxy':
-        return 'Proxy'
-    elif test_robot(url) == 'Direct':
-        return 'Direct'
-    return 'Proxy'
+    robot_ans=test_robot(url)
+    if robot_ans == 'Proxy':
+        return 'Robots:  Proxy'
+    elif robot_ans == 'Direct':
+        return 'Robots:  Direct'
+    return 'None:   Proxy'
 
-
-print(test_robot('https://www.google.com'))
+#init()
+while True:
+    print(detect(input()))
