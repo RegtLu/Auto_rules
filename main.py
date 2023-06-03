@@ -1,17 +1,14 @@
-
-from encodings import utf_8
-
-
 def hash_file(file_path):
     import hashlib
     with open(file_path, "rb") as f:
         hash_object = hashlib.sha256()
         for chunk in iter(lambda: f.read(4096), b""):
             hash_object.update(chunk)
+        del hashlib
         return hash_object.hexdigest()
 
 
-def download_GFWlist():
+# def download_GFWlist():
     import wget
     import base64
     import os
@@ -63,28 +60,30 @@ def test_robot(url):  # 'Direct' or 'Proxy' or 'Not Found'
         'https': 'http://127.0.0.1:7890'
     }
     url = url+'/robots.txt'
-
     import requests
     import time
-
-    start_time = time.time()
-    response = requests.get(url, proxies=proxy)
-    end_time = time.time()
-
-    direct_speed = len(response.content) / \
-        (end_time - start_time) / 1024 / 1024
-
-    start_time = time.time()
-    response = requests.post(url, proxies=proxy)
-    end_time = time.time()
-
-    proxy_speed = len(response.content) / \
-        (end_time - start_time) / 1024 / 1024
-
-    if direct_speed>=proxy_speed:
+    try:
+        start_time = time.time()
+        response = requests.get(url)
+        end_time = time.time()
+        direct_time = end_time - start_time
+    except:
+        direct_time=100
+    try:
+        start_time = time.time()
+        response = requests.post(url, proxies=proxy)
+        end_time = time.time()
+        proxy_time = end_time - start_time
+    except:
+        proxy_time=99
+    del requests
+    del time
+    print('direct_time:'+str(direct_time)+'s')
+    print('proxy_time:'+str(proxy_time)+'s')
+    if direct_time < proxy_time:
         return 'Direct'
     else:
-        return 'Proxy' 
+        return 'Proxy'
 
 
 def detect(url):
@@ -103,4 +102,4 @@ def detect(url):
     return 'Proxy'
 
 
-print(test_robot('https://www.epicgames.com'))
+print(test_robot('https://www.youku.com'))
