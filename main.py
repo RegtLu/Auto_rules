@@ -1,13 +1,3 @@
-def hash_file(file_path):
-    import hashlib
-    with open(file_path, "rb") as f:
-        hash_object = hashlib.sha256()
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_object.update(chunk)
-        del hashlib
-        return hash_object.hexdigest()
-
-
 def init():
     #download_GFWlist()
     with open('./gfw.lst') as f:
