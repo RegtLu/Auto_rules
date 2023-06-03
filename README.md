@@ -1,5 +1,6 @@
 # Auto_rules
 ### 自动检测网站速度，返回是否使用代理
+### Automatically detect website speed and return whether to use proxy
 ***
 >### TODO
 >1. download_GFWlist()中对于GFWlist的解析
