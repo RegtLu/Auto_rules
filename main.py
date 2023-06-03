@@ -102,4 +102,4 @@ def detect(url):
     return 'Proxy'
 
 
-print(test_robot('https://www.youku.com'))
+print(test_robot('https://www.google.com'))
