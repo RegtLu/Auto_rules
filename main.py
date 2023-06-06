@@ -1,6 +1,14 @@
 import re
 import sqlite3
 import time
+import os
+
+def set_proxy():
+    os.environ['http_proxy'] = 'http://127.0.0.1:7867'
+    #os.environ['https_proxy'] = 'http://127.0.0.1:7868'
+def disable_proxy():
+    os.environ.pop('http_proxy', None)
+    #os.environ.pop('https_proxy', None)
 
 class Router(object):
     def __init__(self):
