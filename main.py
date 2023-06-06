@@ -1,5 +1,5 @@
 def init():
-    #download_GFWlist()
+    # download_GFWlist()
     with open('./gfw.lst') as f:
         rules = f.readlines()
     global adblock_rules
@@ -13,32 +13,44 @@ def init():
 def download_GFWlist():
     import update
     update.main()
+    del update
 
 
 def in_GFW(url):  # True or False
     import re
     for rule in adblock_rules:
-        res=re.findall(rule.replace('\n',''), url)
-        if  res == []:
-            continue
-        elif len(res) >1:
+        res = re.findall(rule.replace('\n', ''), url)
+        if res == [] or len(res) > 1 or res[0] != url:
             continue
         else:
             return True
     return False
+
+
+def in_direct(url):
+    pass
+
+
+def in_proxy(url):
+    pass
+
+def to_direct(url):
+    pass
+
+
+def to_proxy(url):
+    pass
+
 
 def in_whitelist(url):  # True or False
     import re
     for rule in white_rules:
-        res=re.findall(rule.replace('\n',''), url)
-        if  len(res) == 1:
+        res = re.findall(rule.replace('\n', ''), url)
+        if len(res) == 1:
             return True
         else:
             continue
     return False
-
-def ping_speed(url):  # 'Direct' or 'Proxy' or 'Blocked'
-    return 'Blocked'
 
 
 def test_robot(url):  # 'Direct' or 'Proxy' or 'Not Found'
@@ -66,29 +78,31 @@ def test_robot(url):  # 'Direct' or 'Proxy' or 'Not Found'
     del requests
     del time
     if direct_time < proxy_time:
+        to_direct(url)
         return 'Direct'
     else:
+        to_proxy(url)
         return 'Proxy'
 
 
 def detect(url):
     if in_whitelist(url) == True:
-        return 'Whitelist:  Direct'
+        return ('Whitelist', 'Direct')
     if in_GFW(url) == True:
-        return 'GFW:    Proxy'
-    ping_ans = ping_speed(url)
-    if ping_ans == 'Proxy':
-        return 'Ping:   Proxy'
-    elif ping_ans == 'Direct':
-        return 'Ping:   Direct'
+        return ('GFW', 'Proxy')
+    if in_direct(url) == True:
+        return ('Custom', 'Direct')
+    if in_proxy(url) == True:
+        return ('Custom', 'Proxy')
     robot_ans = test_robot(url)
     if robot_ans == 'Proxy':
-        return 'Robots:  Proxy'
+        return ('Robots', 'Proxy')
     elif robot_ans == 'Direct':
-        return 'Robots:  Direct'
-    return 'None:   Proxy'
+        return ('Robots', 'Direct')
+    return ('Final', 'Proxy')
 
 
 init()
 print(detect('www.google.com'))
 print(detect('www.baidu.com'))
+print(detect('cdda.fun'))
