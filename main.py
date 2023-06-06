@@ -2,16 +2,18 @@ import re
 import sqlite3
 import time
 
+
 class Router(object):
     def __init__(self):
-        # self.update_GFWlist()
+        self.update_GFWlist()
+        self.refresh_custom()
         with open('./gfw.lst') as f:
             rules = f.readlines()
         self.black_rules = rules
         with open('./cn.lst') as f:
             rules = f.readlines()
         self.white_rules = rules
-        self.sql=sqlite3.connect('./rules.sqlite')
+        self.sql = sqlite3.connect('./rules.sqlite')
 
     def update_GFWlist(self):
         import update
@@ -36,10 +38,10 @@ class Router(object):
                 continue
         return False
 
-    def custom(self,url):
-        cursor=self.sql.cursor()
+    def custom(self, url):
+        cursor = self.sql.cursor()
         cursor.execute('SELECT * FROM RULES WHERE PROXY = TRUE')
-        rules=cursor.fetchall()
+        rules = cursor.fetchall()
         for rule in rules:
             res = re.findall(rule, url)
             if res == [] or len(res) > 1 or res[0] != url:
@@ -48,7 +50,7 @@ class Router(object):
                 cursor.close()
                 return 'Proxy'
         cursor.execute('SELECT * FROM RULES WHERE PROXY = FALSE')
-        rules=cursor.fetchall()
+        rules = cursor.fetchall()
         for rule in rules:
             res = re.findall(rule, url)
             if res == [] or len(res) > 1 or res[0] != url:
@@ -58,7 +60,7 @@ class Router(object):
                 return 'Direct'
         cursor.close()
         return None
-        
+
     def test(self, url):  # 'Direct' or 'Proxy' or 'Not Found'
         proxy = {
             'http': 'http://127.0.0.1:7890',
@@ -84,22 +86,21 @@ class Router(object):
         del requests
         del time
         if direct_time < proxy_time:
-            self.add(url,'Direct')
+            self.add(url, 'Direct')
             return False
         else:
-            self.add(url,'Proxy')
+            self.add(url, 'Proxy')
             return True
 
-
-    def add(self,url,route):
-        if route=='Proxy':
-            arg='TRUE'
-        elif route=='Direct':
-            arg='FALSE'
+    def add(self, url, route):
+        if route == 'Proxy':
+            arg = 'TRUE'
+        elif route == 'Direct':
+            arg = 'FALSE'
         else:
             return
-        self.sql.execute("INSERT INTO RULES VALUES('$1',$2,$3)"%(url,int(time.time()),arg))
-
+        self.sql.execute("INSERT INTO RULES VALUES('$1',$2,$3)" %
+                         (url, int(time.time()), arg))
 
     def route(self, url):
         if self.in_whitelist(url) == True:
@@ -118,10 +119,10 @@ class Router(object):
             return ('Proxy', 'Test')
         else:
             return ('Direct', 'Test')
-    
-    def refresh_custom(self):
-        self.sql.execute("DELETE FROM RULES WHERE strftime('%s','now') - TIME > 864000")
 
+    def refresh_custom(self):
+        self.sql.execute(
+            "DELETE FROM RULES WHERE strftime('%s','now') - TIME > 864000")
 
 
 router = Router()
