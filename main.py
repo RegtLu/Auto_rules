@@ -2,7 +2,6 @@ import re
 import sqlite3
 import time
 
-
 class Router(object):
     def __init__(self):
         self.update_GFWlist()
@@ -20,7 +19,7 @@ class Router(object):
         update.main()
         del update
 
-    def in_GFW(self, url):  # True or False
+    def in_GFW(self, url):
         for rule in self.black_rules:
             res = re.findall(rule.replace('\n', ''), url)
             if res == [] or len(res) > 1 or res[0] != url:
@@ -29,7 +28,7 @@ class Router(object):
                 return True
         return False
 
-    def in_whitelist(self, url):  # True or False
+    def in_whitelist(self, url):
         for rule in self.white_rules:
             res = re.findall(rule.replace('\n', ''), url)
             if len(res) == 1:
@@ -61,7 +60,7 @@ class Router(object):
         cursor.close()
         return None
 
-    def test(self, url):  # 'Direct' or 'Proxy' or 'Not Found'
+    def test(self, url):
         proxy = {
             'http': 'http://127.0.0.1:7890',
             'https': 'http://127.0.0.1:7890'
